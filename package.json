@@ -8,8 +8,8 @@
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Bisue",
+  "license": "MIT",
   "dependencies": {
     "typescript": "^4.7.4"
   },
