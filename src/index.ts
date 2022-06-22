@@ -1,11 +1,23 @@
-import launch from './launch';
+import Everytime from './community/everytime';
+import config from './config';
 
 (async () => {
-  const page = await launch();
-  await page.goto('https://google.com');
+  const everytime = new Everytime({
+    login: {
+      id: config.everytime.id,
+      pw: config.everytime.pw,
+    },
+  });
 
-  const html = await page.content();
-  console.log(html);
+  await everytime.crawl({
+    chunk: {
+      amount: 5,
+    },
+    range: {
+      from: 1,
+      to: 10,
+    },
+  });
 
-  await page.close();
+  console.log('Crawl finished!');
 })();
