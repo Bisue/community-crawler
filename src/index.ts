@@ -11,11 +11,11 @@ import config from './config';
 
   await everytime.crawl({
     chunk: {
-      amount: 5,
+      amount: 50,
     },
     range: {
       from: 1,
-      to: 10,
+      to: 1000,
     },
   });
 

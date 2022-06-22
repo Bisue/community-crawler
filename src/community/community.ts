@@ -17,6 +17,7 @@ export type Post = {
   comments?: string[];
   likes?: number;
   scrap?: number;
+  at?: string;
 };
 
 export type CrawlArgs = {

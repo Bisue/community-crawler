@@ -44,6 +44,7 @@ class Everytime extends Community {
       const comments = await container.$$('.comments article');
       if (!article) throw Error('Error occur during find article.');
 
+      const time = await article.$eval('time.large', (e) => e.textContent);
       const title = await article.$eval('h2.large', (e) => e.textContent);
       const content = await article.$eval('p.large', (e) => e.innerHTML.trim().replace(/<br>/gi, '\n'));
       const votes = await article.$eval('.status .vote', (e) => e.textContent);
@@ -57,6 +58,7 @@ class Everytime extends Community {
       posts.push({
         content,
         comments: commentContents,
+        ...(time != null && { at: time }),
         ...(title != null && { title: title }),
         ...(votes != null && { likes: Number.parseInt(votes) }),
         ...(scrap != null && { scrap: Number.parseInt(scrap) }),
@@ -75,8 +77,14 @@ class Everytime extends Community {
 
     let page: number;
     for (page = from; page <= to; page++) {
-      const pagePosts = await this.crawlPage('377389', page);
-      posts.push(...pagePosts);
+      try {
+        const pagePosts = await this.crawlPage('377389', page);
+        posts.push(...pagePosts);
+      } catch (e) {
+        console.log(`==== ERROR on ${page} page ====`);
+        console.error(e);
+        console.log(`===============================`);
+      }
 
       // save chunk & flush
       if (args.chunk != undefined) {
