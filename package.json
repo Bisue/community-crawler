@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "data": "ts-node src/data.ts",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
