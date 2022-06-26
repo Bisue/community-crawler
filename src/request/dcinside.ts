@@ -38,6 +38,10 @@ class Dcinside {
       console.log('-- page:', page);
       const pagePosts = await this.fetchPage(boardId, page);
       posts.push(...pagePosts);
+
+      const delay = (Math.random() * 2 + 1) * 1000;
+      console.log('delayed:', delay, '...');
+      await sleep(delay);
     }
     return posts;
   }
