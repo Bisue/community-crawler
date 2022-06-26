@@ -86,7 +86,7 @@ class Fmkorea {
             posts.splice(0, posts.length);
           }
 
-          const delay = Math.random() * 45 + 15;
+          const delay = Math.random() * 30 + 0;
           console.log('---------- delay:', delay, '----------');
           await sleep(delay * 1000);
         }
