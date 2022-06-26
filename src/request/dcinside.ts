@@ -3,13 +3,13 @@ import axios, { AxiosInstance } from 'axios';
 import { htmlToText } from 'html-to-text';
 
 export type Post = {
-  no: string;
   title: string;
   hasImage: boolean;
   author: string;
   at: string;
   views: number;
   upVotes: number;
+  content_raw: string;
   content: string;
   comments: number;
   downVotes: number;
@@ -24,10 +24,10 @@ class Dcinside {
 
   constructor() {
     this.http = axios.create({
-      baseURL: 'https://gall.dcinside.com/',
+      baseURL: 'https://m.dcinside.com',
       headers: {
         'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36',
       },
     });
   }
@@ -43,33 +43,31 @@ class Dcinside {
   }
 
   protected async fetchPage(boardId: string, page: number) {
-    const basePath = '/board/lists';
-    const path = `${basePath}?id=${boardId}&page=${page}`;
+    const basePath = '/board';
+    const path = `${basePath}/${boardId}?page=${page}`;
 
     const { data: html } = await this.http.get<string>(path);
 
     const posts: Post[] = [];
 
     const $ = cheerio.load(html);
-    const postElements = $('table.gall_list tbody>tr.us-post');
-    console.log('at:', postElements.length);
+    const postElements = $('.gall-detail-lst .gall-detail-lnktb');
     for (const element of postElements) {
       const e = $(element);
 
-      const no = e.find('.gall_num').text();
-      if (no == '공지') continue;
-      const title = e.find('.gall_tit > a:first-child').text();
-      const hasImage = e.find('.gall_tit > .icon_img').length == 0 ? false : true;
-      const author = e.find('.gall_writer .nickname').text();
-      const at = e.find('.gall_date').attr('title');
-      if (at == undefined) continue;
-      const views = Number.parseInt(e.find('.gall_count').text());
+      const title = e.find('.subjectin').text();
+      console.log('title', title);
 
-      const { content, comments, upVotes, downVotes } = await this.fetchPost(boardId, no);
+      const hasImage = e.find('.sp-lst-img').length == 0 ? false : true;
+      const author = e.find('.ginfo li:nth-child(1)').text();
+
+      const link = e.find('a:first-child').attr('href');
+      if (link == undefined) continue;
+      const { content_raw, content, at, views, comments, upVotes, downVotes } = await this.fetchPost(link);
 
       posts.push({
-        no,
         title,
+        content_raw,
         content,
         comments,
         upVotes,
@@ -80,26 +78,30 @@ class Dcinside {
         views,
       });
 
-      await sleep(1000);
+      // await sleep(100);
     }
 
     return posts;
   }
 
-  protected async fetchPost(boardId: string, no: string) {
-    const path = `/board/view?id=${boardId}&no=${no}`;
-
-    const { data: html } = await this.http.get<string>(path);
+  protected async fetchPost(link: string) {
+    const { data: html } = await this.http.get<string>(link);
 
     const $ = cheerio.load(html);
 
-    const content = htmlToText($('.write_div').text());
-    const comments = Number.parseInt($('.gall_comment').text().split(' ')[1]);
-    const upVotes = Number.parseInt($('.up_num').text());
-    const downVotes = Number.parseInt($('.down_num').text());
+    const content_raw = ($('.thum-txtin').html() ?? '').trim();
+    const content = htmlToText(content_raw);
+    const at = $('.btm .ginfo2 li:nth-child(2)').text();
+    const views = Number.parseInt($('.gall-thum-btm .ginfo2 li:nth-child(1)').text().split(' ')[1]);
+    const comments = Number.parseInt($('.gall-thum-btm .ginfo2 li:nth-child(3)').text().split(' ')[1]);
+    const upVotes = Number.parseInt($('#recomm_btn').text());
+    const downVotes = Number.parseInt($('#nonrecomm_btn').text());
 
     return {
+      content_raw,
       content,
+      at,
+      views,
       comments,
       upVotes,
       downVotes,
