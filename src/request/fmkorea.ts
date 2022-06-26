@@ -94,10 +94,6 @@ class Fmkorea {
             this.saveQueue(postQueue);
             postQueue.splice(0, postQueue.length);
           }
-
-          const delay = Math.random() * 5 + 0;
-          console.log('---------- delay:', delay, '----------');
-          await sleep(delay * 1000);
         }
       } catch (e) {
         console.log('========== Some Error Occur! ==========');
@@ -105,6 +101,10 @@ class Fmkorea {
         console.error(e);
         continue;
       }
+
+      const delay = Math.random() * 5 + 0;
+      console.log('---------- delay:', delay, '----------');
+      await sleep(delay * 1000);
     }
 
     this.saveQueue(postQueue);
