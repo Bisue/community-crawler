@@ -17,6 +17,17 @@ export type Post = {
   comments: number;
 };
 
+export type PostQueue = {
+  link: string;
+  category: string;
+  title: string;
+  hasImage: boolean;
+  author: string;
+
+  views: number;
+  likes: number;
+}[];
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -25,6 +36,7 @@ class Fmkorea {
   protected http: AxiosInstance;
   protected now: number;
   protected chunk: number;
+  protected queueChunk: number;
 
   constructor() {
     this.http = axios.create({
@@ -36,13 +48,14 @@ class Fmkorea {
     });
     this.now = Date.now();
     this.chunk = 0;
+    this.queueChunk = 0;
   }
 
-  public async crawl(board: string, start = 1, end = 5) {
-    const posts: Post[] = [];
+  protected async getList(board: string, start = 1, end = 5) {
+    const postQueue: PostQueue = [];
 
-    try {
-      for (let page = start; page <= end; page++) {
+    for (let page = start; page <= end; page++) {
+      try {
         console.log('========== page:', page, '==========');
         const path = `/index.php?mid=${board}&page=${page}`;
 
@@ -65,38 +78,67 @@ class Fmkorea {
           const views = Number.parseInt(post.find('.m_no').first().text());
           const likes = Number.parseInt(post.find('.m_no_voted').text());
 
-          const { content, at, comments } = await this.crawlDetail(link);
-
-          posts.push({
+          postQueue.push({
+            link,
             category,
             title,
-            content,
             hasImage,
             author,
-            at,
             views,
             likes,
-            comments,
           });
 
-          console.log('- count:', posts.length);
+          console.log('- count:', postQueue.length);
 
-          if (posts.length == 100) {
-            this.save(posts);
-            posts.splice(0, posts.length);
+          if (postQueue.length == 100) {
+            this.saveQueue(postQueue);
+            postQueue.splice(0, postQueue.length);
           }
 
-          const delay = Math.random() * 30 + 0;
+          const delay = Math.random() * 5 + 0;
           console.log('---------- delay:', delay, '----------');
           await sleep(delay * 1000);
         }
+      } catch (e) {
+        console.log('========== Some Error Occur! ==========');
+        console.log('---------- During Make Queue ----------');
+        console.error(e);
+        continue;
       }
-    } catch (e) {
-      console.log('========== Some Error Occur! ==========');
-      console.error(e);
-    } finally {
-      this.save(posts);
     }
+
+    this.saveQueue(postQueue);
+  }
+
+  protected async getDetail(queue: PostQueue) {
+    const posts: Post[] = [];
+
+    for (const target of queue) {
+      try {
+        const detail = await this.crawlDetail(target.link);
+        posts.push({ ...target, ...detail });
+
+        if (posts.length == 100) {
+          this.save(posts);
+          posts.splice(0, posts.length);
+        }
+
+        const delay = Math.random() * 5 + 0;
+        console.log('---------- delay:', delay, '----------');
+        await sleep(delay * 1000);
+      } catch (e) {
+        console.log('========== Some Error Occur! ==========');
+        console.log('---------- During Get Detail ----------');
+        console.error(e);
+        continue;
+      }
+    }
+
+    this.save(posts);
+  }
+
+  public async crawl(board: string, start = 1, end = 5) {
+    await this.getList(board, start, end);
   }
 
   protected async crawlDetail(link: string) {
@@ -112,6 +154,16 @@ class Fmkorea {
       comments,
       content: contentRaw,
     };
+  }
+
+  protected saveQueue(queue: PostQueue) {
+    const dir = path.join(`./queues/${this.now}`);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+
+    const filename = `${++this.queueChunk}.json`;
+    const fullpath = path.join(dir, filename);
+
+    fs.writeFileSync(fullpath, JSON.stringify(queue, null, 2));
   }
 
   protected save(posts: Post[]) {
