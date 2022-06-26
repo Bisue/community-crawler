@@ -1,23 +1,12 @@
-import Everytime from './community/everytime';
-import config from './config';
+import Dcinside from './request/dcinside';
 
 (async () => {
-  const everytime = new Everytime({
-    login: {
-      id: config.everytime.id,
-      pw: config.everytime.pw,
-    },
-  });
+  const dcinside = new Dcinside();
 
-  await everytime.crawl({
-    chunk: {
-      amount: 50,
-    },
-    range: {
-      from: 1,
-      to: 1000,
-    },
-  });
+  console.log('Crawl start');
+
+  const posts = await dcinside.fetch('baseball_new11', 1, 10);
+  console.log(posts, posts.length);
 
   console.log('Crawl finished!');
 })();
