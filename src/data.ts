@@ -1,77 +1,68 @@
-import { Post } from './community/community';
 import fs from 'fs';
+import path from 'path';
 
-function merge() {
-  const result: any[] = [];
+const queues = [];
 
-  const chunk = 20;
-  for (let i = 1; i <= chunk; i++) {
-    const raw = fs.readFileSync(`./data/1/posts-${i}.json`).toString();
-    const json: Post[] = JSON.parse(raw);
-    console.log(`merge.. ${i}`);
-    result.push(...json);
+// 합치기
+for (let i = 1; i <= 6; i++) {
+  const dir = `./temp/${i}`;
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullpath = path.join(dir, file);
+
+    const queue = JSON.parse(fs.readFileSync(fullpath).toString());
+    queues.push(...queue);
   }
-  const raw = fs.readFileSync(`./data/1/posts-remained.json`).toString();
-  const json: Post[] = JSON.parse(raw);
-  result.push(...json);
-
-  fs.writeFileSync('./data/1/result.json', JSON.stringify(result, null, 2));
 }
 
-function showInfo() {
-  const raw = fs.readFileSync('./data/1/result.json').toString();
-  const json: Post[] = JSON.parse(raw);
-  console.log(`==== 총 ${json.length}개의 Posts ====`);
-  console.log(`---- ${json[0].at} ~ ${json[json.length - 1].at}`);
+// 중복 제거
+const distinct = queues.filter(function (item, pos, list) {
+  const p = list
+    .map(function (e) {
+      return e.link;
+    })
+    .indexOf(item.link);
+  return p == pos;
+});
 
-  // max
-  const maxLikes = json.reduce((acc, cur) => {
-    if (cur.likes != undefined) {
-      return acc < cur.likes ? cur.likes : acc;
-    }
-    return acc;
-  }, 0);
-  const maxScraps = json.reduce((acc, cur) => {
-    if (cur.scrap != undefined) {
-      return acc < cur.scrap ? cur.scrap : acc;
-    }
-    return acc;
-  }, 0);
-  const maxComments = json.reduce((acc, cur) => {
-    if (cur.comments?.length != undefined) {
-      return acc < cur.comments?.length ? cur.comments?.length : acc;
-    }
-    return acc;
-  }, 0);
+distinct.forEach((e) => {
+  if (e.likes == null) {
+    e.likes = 0;
+  }
+});
+distinct.forEach((e) => {
+  if (e.views == 0) {
+    console.log(e);
+  }
+});
 
-  // average
-  const sumLikes = json.reduce((acc, cur) => {
-    if (cur.likes != undefined) {
-      return acc + cur.likes;
-    }
-    return acc;
-  }, 0);
-  const sumScraps = json.reduce((acc, cur) => {
-    if (cur.scrap != undefined) {
-      return acc + cur.scrap;
-    }
-    return acc;
-  }, 0);
-  const sumComments = json.reduce((acc, cur) => {
-    if (cur.comments?.length != undefined) {
-      return acc + cur.comments?.length;
-    }
-    return acc;
-  }, 0);
-  const avgLikes = sumLikes / json.length;
-  const avgScraps = sumScraps / json.length;
-  const avgComments = sumComments / json.length;
+console.log(queues.length, distinct.length);
+fs.writeFileSync('./queue.json', JSON.stringify(distinct, null, 2));
 
-  console.log(`- max:     likes(${maxLikes}), scraps(${maxScraps}), comments(${maxComments})`);
-  console.log(`- average: likes(${avgLikes}), scraps(${avgScraps}), comments(${avgComments})`);
-}
+const maxViews = distinct.reduce((acc, cur) => {
+  return acc > cur.views ? acc : cur.views;
+}, 0);
+const maxLikes = distinct.reduce((acc, cur) => {
+  return acc > cur.likes ? acc : cur.likes;
+}, 0);
+const minViews = distinct.reduce((acc, cur) => {
+  return acc < cur.views ? acc : cur.views;
+}, Number.MAX_VALUE);
+const minLikes = distinct.reduce((acc, cur) => {
+  return acc < cur.likes ? acc : cur.likes;
+}, Number.MAX_VALUE);
+const avgViews =
+  distinct.reduce((acc, cur) => {
+    return acc + cur.views;
+  }, 0) / distinct.length;
+const avgLikes =
+  distinct.reduce((acc, cur) => {
+    return acc + cur.likes;
+  }, 0) / distinct.length;
 
-if (!fs.existsSync('./data/1/result.json')) {
-  merge();
-}
-showInfo();
+console.log('views max:', maxViews);
+console.log('views avg:', avgViews);
+console.log('views min:', minViews);
+console.log('likes max:', maxLikes);
+console.log('likes avg:', avgLikes);
+console.log('likes min:', minLikes);
