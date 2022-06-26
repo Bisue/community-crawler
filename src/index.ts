@@ -1,14 +1,11 @@
-import Dcinside from './request/dcinside';
-import fs from 'fs';
+import Fmkorea from './request/fmkorea';
 
 (async () => {
-  const dcinside = new Dcinside();
+  const fmkorea = new Fmkorea();
 
   console.log('Crawl start');
 
-  const posts = await dcinside.fetch('baseball_new11', 1, 100);
-  fs.writeFileSync('./output.json', JSON.stringify(posts, null, 2));
+  await fmkorea.crawl('free', 5, 200);
 
   console.log('Crawl finished!');
-  console.log(posts, posts.length);
 })();
