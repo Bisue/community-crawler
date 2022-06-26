@@ -90,7 +90,7 @@ class Fmkorea {
 
           console.log('- count:', postQueue.length);
 
-          if (postQueue.length == 100) {
+          if (postQueue.length >= 100) {
             this.saveQueue(postQueue);
             postQueue.splice(0, postQueue.length);
           }
@@ -118,7 +118,7 @@ class Fmkorea {
         const detail = await this.crawlDetail(target.link);
         posts.push({ ...target, ...detail });
 
-        if (posts.length == 100) {
+        if (posts.length >= 100) {
           this.save(posts);
           posts.splice(0, posts.length);
         }
