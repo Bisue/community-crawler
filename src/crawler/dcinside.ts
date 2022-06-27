@@ -3,6 +3,8 @@ import axios, { AxiosInstance } from 'axios';
 import dayjs from 'dayjs';
 import fs from 'fs';
 import path from 'path';
+import { shuffle } from '../utils/shuffle';
+import { randomSleep } from '../utils/sleep';
 
 // types
 export type Post = {
@@ -13,39 +15,21 @@ export type Post = {
   date: string;
   datetime: string | null;
   onlyText: boolean; //
+  images: number | null;
   hasImage: boolean; //
+  videos: number | null;
   hasVideo: boolean; //
   views: number;
   upVotes: number;
-  // downVotes: number;
+  downVotes: number | null;
   comments: number;
 };
-
-// delay function
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// random delay function
-async function randomSleep(min: number, max: number) {
-  const delay = Math.random() * (max - min) + min;
-  console.log(`sleeping... (${(delay / 1000).toFixed(2)}s)`);
-  await sleep(delay);
-}
-
-// Fisher-Yates shuffle
-function shuffle(array: any[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
 
 // dcinside crawler
 class Dcinside {
   // axios instance
   protected http: AxiosInstance;
-  protected timestamp: number;
+  public readonly timestamp: number;
 
   constructor() {
     this.http = axios.create({
@@ -83,7 +67,6 @@ class Dcinside {
       const author = element.find('.ginfo li').first().text().trim();
       const anonymous = element.find('.ginfo .sp-nick').length == 0 ? true : false;
       const date = dayjs(element.find('.ginfo li').eq(1).text().trim(), 'MM.DD').year(2022).format('YYYY-MM-DD');
-      const datetime = null;
       const onlyText = element.find('.sp-lst-txt, .sp-lst-recotxt').length == 0 ? false : true;
       const hasImage = element.find('.sp-lst-img, .sp-lst-recoimg').length == 0 ? false : true;
       const hasVideo = element.find('.sp-lst-play, .sp-lst-recoplay').length == 0 ? false : true;
@@ -97,17 +80,45 @@ class Dcinside {
         author,
         anonymous,
         date,
-        datetime,
+        datetime: null,
         onlyText,
+        images: null,
         hasImage,
+        videos: null,
         hasVideo,
         views,
         upVotes,
+        downVotes: null,
         comments,
       });
     });
 
     return posts;
+  }
+
+  protected async getPostDetail(link: string) {
+    const { data: html } = await this.http.get<string>(link);
+    const $ = cheerio.load(html);
+
+    // datetime
+    const datetime = dayjs(
+      $('.gallview-tit-box .btm .ginfo2 > li').eq(1).text().trim(),
+      'YYYY.MM.DD HH:mm:ss'
+    ).format();
+
+    // images, videos check
+    const images = $('.gall-thum-btm-inner .thum-txtin img').length;
+    const hasImage = images > 0 ? true : false;
+    const videos = $('.gall-thum-btm-inner .thum-txtin video').length;
+    const hasVideo = videos > 0 ? true : false;
+    let onlyText = true;
+    if (hasImage || hasVideo) onlyText = false;
+
+    // votes
+    const upVotes = Number.parseInt($('.reco-area .reco-up .ct-box .ct').first().text().trim());
+    const downVotes = Number.parseInt($('.reco-area .reco-down .ct-box .no-ct').first().text().trim());
+
+    return { datetime, onlyText, images, hasImage, videos, hasVideo, upVotes, downVotes };
   }
 
   // 페이지 범위 내 모든 글 크롤링 (일반글)
@@ -202,6 +213,14 @@ class Dcinside {
   // public async crawlRandomBest(board: string, start: number, end: number) {
   //   //
   // }
+
+  public async fillDetail(post: Post): Promise<Post> {
+    if (!post.link) throw Error('post.link not found!');
+
+    const detail = await this.getPostDetail(post.link);
+
+    return { ...post, ...detail };
+  }
 }
 
 export default Dcinside;
