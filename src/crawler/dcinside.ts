@@ -137,7 +137,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (page < end) await randomSleep(5000, 15000);
+        if (page < end) await randomSleep(2000, 5000);
       }
     }
 
@@ -171,7 +171,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (posts.length < total) await randomSleep(5000, 15000);
+        if (posts.length < total) await randomSleep(2000, 5000);
       }
     }
 
@@ -199,7 +199,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (page < end) await randomSleep(5000, 15000);
+        if (page < end) await randomSleep(2000, 5000);
       }
     }
 

@@ -23,7 +23,7 @@ import path from 'path';
       console.error(e);
       errorCount++;
     } finally {
-      await randomSleep(5000, 15000);
+      await randomSleep(2000, 5000);
     }
   }
 
