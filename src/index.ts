@@ -1,4 +1,4 @@
-import Dcinside from './request/dcinside';
+import Dcinside from './crawler/dcinside';
 
 (async () => {
   const dcinside = new Dcinside();
