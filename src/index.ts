@@ -1,11 +1,13 @@
-import launch from './launch';
+import Dcinside from './crawler/dcinside';
 
 (async () => {
-  const page = await launch();
-  await page.goto('https://google.com');
+  const dcinside = new Dcinside();
 
-  const html = await page.content();
-  console.log(html);
+  console.log('===== CRAWLING =====');
 
-  await page.close();
+  // best 6000, random 10000
+  await dcinside.crawlRandom('baseball_new10', 2, 17500, 30000, 10);
+  await dcinside.crawlAllBest('baseball_new10', 1, 30);
+
+  console.log('=====   END   ======');
 })();
