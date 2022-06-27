@@ -1,11 +1,13 @@
-import Fmkorea from './request/fmkorea';
+import Dcinside from './request/dcinside';
 
 (async () => {
-  const fmkorea = new Fmkorea();
+  const dcinside = new Dcinside();
 
-  console.log('Crawl start');
+  console.log('===== CRAWLING =====');
 
-  await fmkorea.crawl('free', 5, 200);
+  // best 6000, random 10000
+  await dcinside.crawlRandom('baseball_new10', 2, 17500, 30000, 10);
+  await dcinside.crawlAllBest('baseball_new10', 1, 30);
 
-  console.log('Crawl finished!');
+  console.log('=====   END   ======');
 })();
