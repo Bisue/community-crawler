@@ -5,7 +5,7 @@ import Dcinside from './crawler/dcinside';
 
   console.log('===== CRAWLING =====');
 
-  // best 6000, random 10000
+  // best 6000, random 30000
   await dcinside.crawlRandom('baseball_new10', 2, 17500, 30000, 10);
   await dcinside.crawlAllBest('baseball_new10', 1, 30);
 
