@@ -4,7 +4,7 @@ import { randomSleep } from './utils/sleep';
 import path from 'path';
 
 (async () => {
-  const postsPath = './dataset/temp.json';
+  const postsPath = './dataset/before/dcinside_best_6000.json';
   const posts: Post[] = JSON.parse(fs.readFileSync(postsPath).toString());
 
   const dcinside = new Dcinside();
@@ -13,17 +13,26 @@ import path from 'path';
   console.log('===== DETAIL CRAWLING =====');
 
   let errorCount = 0;
+  const errorPosts: Post[] = [];
   for (const post of posts) {
     try {
       console.log(`CUR POST: ${post.title}`);
       detailedPost.push(await dcinside.fillDetail(post));
       console.log(`SUCCESS! - ${detailedPost.length}/${posts.length}`);
+      if (detailedPost.length % 100 == 0) {
+        const dir = `./results/${dcinside.timestamp}`;
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+
+        const fullpath = path.join(dir, 'temp.json');
+        fs.writeFileSync(fullpath, JSON.stringify(detailedPost, null, 2));
+      }
     } catch (e) {
       console.error(`===== ERROR! (${post.link}) =====`);
       console.error(e);
+      errorPosts.push(post);
       errorCount++;
     } finally {
-      await randomSleep(2000, 5000);
+      await randomSleep(500, 1500);
     }
   }
 
@@ -31,7 +40,9 @@ import path from 'path';
   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
   const fullpath = path.join(dir, 'detailed_posts.json');
+  const errorPostsPath = path.join(dir, 'error_posts.json');
   fs.writeFileSync(fullpath, JSON.stringify(detailedPost, null, 2));
+  fs.writeFileSync(errorPostsPath, JSON.stringify(errorPosts, null, 2));
 
   console.log('=====       END       =====');
   console.log(`DETAIL CRAWLING: ${posts.length}`);

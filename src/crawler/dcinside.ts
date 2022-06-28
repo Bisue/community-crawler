@@ -23,6 +23,7 @@ export type Post = {
   upVotes: number;
   downVotes: number | null;
   comments: number;
+  content: string | null;
 };
 
 // dcinside crawler
@@ -81,6 +82,7 @@ class Dcinside {
         anonymous,
         date,
         datetime: null,
+        content: null,
         onlyText,
         images: null,
         hasImage,
@@ -100,6 +102,11 @@ class Dcinside {
     const { data: html } = await this.http.get<string>(link);
     const $ = cheerio.load(html);
 
+    // title
+    const title = $('.gallview-tit-box .tit').first().text().trim();
+    const author = $('.gallview-tit-box .ginfo2 li').first().text().trim();
+    const content = $('.gall-thum-btm-inner .thum-txt .thum-txtin').first().html()?.trim() ?? null;
+
     // datetime
     const datetime = dayjs(
       $('.gallview-tit-box .btm .ginfo2 > li').eq(1).text().trim(),
@@ -118,7 +125,7 @@ class Dcinside {
     const upVotes = Number.parseInt($('.reco-area .reco-up .ct-box .ct').first().text().trim());
     const downVotes = Number.parseInt($('.reco-area .reco-down .ct-box .no-ct').first().text().trim());
 
-    return { datetime, onlyText, images, hasImage, videos, hasVideo, upVotes, downVotes };
+    return { title, author, content, datetime, onlyText, images, hasImage, videos, hasVideo, upVotes, downVotes };
   }
 
   // 페이지 범위 내 모든 글 크롤링 (일반글)
