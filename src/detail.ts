@@ -4,7 +4,7 @@ import { randomSleep } from './utils/sleep';
 import path from 'path';
 
 (async () => {
-  const postsPath = './dataset/before/dcinside_best_6000.json';
+  const postsPath = './dataset/lol/crawl_random.json';
   const posts: Post[] = JSON.parse(fs.readFileSync(postsPath).toString());
 
   const dcinside = new Dcinside();
@@ -32,7 +32,7 @@ import path from 'path';
       errorPosts.push(post);
       errorCount++;
     } finally {
-      await randomSleep(500, 1500);
+      await randomSleep(100, 500);
     }
   }
 

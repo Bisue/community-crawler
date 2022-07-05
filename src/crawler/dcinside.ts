@@ -53,7 +53,7 @@ class Dcinside {
 
   // 특정 게시판 특정 페이지 게시글 목록 크롤링
   protected async getPosts(board: string, page: number, best: boolean) {
-    const url = `/board/baseball_new10?page=${page}${best ? '&recommend=1' : ''}`;
+    const url = `/board/${board}?page=${page}${best ? '&recommend=1' : ''}`;
 
     const { data: html } = await this.http.get<string>(url, { headers: { Cookie: 'list_count=200;' } });
     const $ = cheerio.load(html);
@@ -144,7 +144,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (page < end) await randomSleep(2000, 5000);
+        if (page < end) await randomSleep(100, 500);
       }
     }
 
@@ -178,7 +178,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (posts.length < total) await randomSleep(2000, 5000);
+        if (posts.length < total) await randomSleep(100, 500);
       }
     }
 
@@ -206,7 +206,7 @@ class Dcinside {
         console.error(e);
         errorCount++;
       } finally {
-        if (page < end) await randomSleep(2000, 5000);
+        if (page < end) await randomSleep(100, 500);
       }
     }
 

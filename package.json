@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "detail": "ts-node src/detail.ts",
+    "preprocess": "ts-node src/preprocess.ts",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
     "prettier": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
