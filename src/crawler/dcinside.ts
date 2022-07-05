@@ -13,7 +13,7 @@ export type Post = {
   title: string;
   author: string;
   anonymous: boolean;
-  date: string | null;
+  // date: string | null;
   datetime: string | null;
   onlyText: boolean; //
   images: number | null;
@@ -88,7 +88,7 @@ class Dcinside {
         title,
         author,
         anonymous,
-        date: null,
+        // date: null,
         datetime: null,
         content: null,
         onlyText,
