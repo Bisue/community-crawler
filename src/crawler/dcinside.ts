@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { shuffle } from '../utils/shuffle';
 import { randomSleep } from '../utils/sleep';
+import { preprocessContent } from '../utils/preprocess';
 
 // types
 export type Post = {
@@ -12,7 +13,7 @@ export type Post = {
   title: string;
   author: string;
   anonymous: boolean;
-  date: string;
+  date: string | null;
   datetime: string | null;
   onlyText: boolean; //
   images: number | null;
@@ -24,6 +25,7 @@ export type Post = {
   downVotes: number | null;
   comments: number;
   content: string | null;
+  isBest: boolean;
 };
 
 // dcinside crawler
@@ -43,12 +45,14 @@ class Dcinside {
     this.timestamp = Date.now();
   }
 
-  protected async save(data: any, filename: string) {
+  protected save(data: any, filename: string) {
     const dir = `./results/${this.timestamp}`;
     if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
     const fullpath = path.join(dir, filename);
     fs.writeFileSync(fullpath, JSON.stringify(data, null, 2));
+
+    return fullpath;
   }
 
   // 특정 게시판 특정 페이지 게시글 목록 크롤링
@@ -63,24 +67,28 @@ class Dcinside {
     elements.each((_, e) => {
       const element = $(e);
 
-      const link = element.find('.gall-detail-lnktb > a').first().attr('href')?.trim() || null;
+      let link = element.find('.gall-detail-lnktb > a').first().attr('href')?.trim() || null;
+      if (link != null) {
+        link = link.split('?')[0];
+      }
       const title = element.find('.subjectin').first().text().trim();
       const author = element.find('.ginfo li').first().text().trim();
       const anonymous = element.find('.ginfo .sp-nick').length == 0 ? true : false;
-      const date = dayjs(element.find('.ginfo li').eq(1).text().trim(), 'MM.DD').year(2022).format('YYYY-MM-DD');
       const onlyText = element.find('.sp-lst-txt, .sp-lst-recotxt').length == 0 ? false : true;
       const hasImage = element.find('.sp-lst-img, .sp-lst-recoimg').length == 0 ? false : true;
       const hasVideo = element.find('.sp-lst-play, .sp-lst-recoplay').length == 0 ? false : true;
       const views = Number.parseInt(element.find('.ginfo li').eq(2).text().trim().split(' ')[1]);
       const upVotes = Number.parseInt(element.find('.ginfo li').eq(3).text().trim().split(' ')[1]);
       const comments = Number.parseInt(element.find('.gall-detail-lnktb > .rt .ct').first().text().trim());
+      const isBest =
+        element.find('.sp-lst-recotxt, .sp-lst-recoimg, .sp-lst-recoplay, .sp-lst-best').length == 0 ? false : true;
 
       posts.push({
         link,
         title,
         author,
         anonymous,
-        date,
+        date: null,
         datetime: null,
         content: null,
         onlyText,
@@ -92,6 +100,7 @@ class Dcinside {
         upVotes,
         downVotes: null,
         comments,
+        isBest,
       });
     });
 
@@ -105,7 +114,10 @@ class Dcinside {
     // title
     const title = $('.gallview-tit-box .tit').first().text().trim();
     const author = $('.gallview-tit-box .ginfo2 li').first().text().trim();
-    const content = $('.gall-thum-btm-inner .thum-txt .thum-txtin').first().html()?.trim() ?? null;
+    let content = $('.gall-thum-btm-inner .thum-txt .thum-txtin').first().html()?.trim() ?? null;
+    if (content != null) {
+      content = preprocessContent(content);
+    }
 
     // datetime
     const datetime = dayjs(
@@ -151,7 +163,8 @@ class Dcinside {
     console.log(`CRAWL ALL  : ${start}p ~ ${end}p`);
     console.log(`ERROR      : ${errorCount}`);
     console.log(`POSTS COUNT: ${posts.length}`);
-    this.save(posts, 'crawl_all.json');
+
+    return this.save(posts, 'crawl_all.json');
   }
 
   // 페이지 범위 내 랜덤으로 글 크롤링 (일반글)
@@ -186,8 +199,10 @@ class Dcinside {
     console.log(`CRAWL RANDOM  : ${min}p ~ ${max}p`);
     console.log(`ERROR         : ${errorCount}`);
     console.log(`POSTS COUNT   : ${posts.length}`);
-    this.save(posts, 'crawl_random.json');
+    const filepath = this.save(posts, 'crawl_random.json');
     this.save(selectedPages, 'crawl_random_selected_pages.json');
+
+    return filepath;
   }
 
   // 페이지 범위 내 모든 글 크롤링 (개념글)
@@ -213,7 +228,7 @@ class Dcinside {
     console.log(`CRAWL ALL BEST: ${start}p ~ ${end}p`);
     console.log(`ERROR         : ${errorCount}`);
     console.log(`POSTS COUNT   : ${posts.length}`);
-    this.save(posts, 'crawl_all_best.json');
+    return this.save(posts, 'crawl_all_best.json');
   }
 
   // // 페이지 범위 내 랜덤으로 글 크롤링 (개념글)

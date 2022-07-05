@@ -1,13 +1,12 @@
-import Dcinside, { Post } from './crawler/dcinside';
+import Dcinside, { Post } from '../crawler/dcinside';
 import fs from 'fs';
-import { randomSleep } from './utils/sleep';
+import { randomSleep } from './sleep';
 import path from 'path';
 
-(async () => {
-  const postsPath = './dataset/lol/crawl_random.json';
+export async function crwalDetail(dcinside: Dcinside, filepath: string) {
+  const postsPath = filepath;
   const posts: Post[] = JSON.parse(fs.readFileSync(postsPath).toString());
 
-  const dcinside = new Dcinside();
   const detailedPost: Post[] = [];
 
   console.log('===== DETAIL CRAWLING =====');
@@ -23,7 +22,7 @@ import path from 'path';
         const dir = `./results/${dcinside.timestamp}`;
         if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
-        const fullpath = path.join(dir, 'temp.json');
+        const fullpath = path.join(dir, 'detail_temp.json');
         fs.writeFileSync(fullpath, JSON.stringify(detailedPost, null, 2));
       }
     } catch (e) {
@@ -40,7 +39,7 @@ import path from 'path';
   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
   const fullpath = path.join(dir, 'detailed_posts.json');
-  const errorPostsPath = path.join(dir, 'error_posts.json');
+  const errorPostsPath = path.join(dir, 'detail_error_posts.json');
   fs.writeFileSync(fullpath, JSON.stringify(detailedPost, null, 2));
   fs.writeFileSync(errorPostsPath, JSON.stringify(errorPosts, null, 2));
 
@@ -49,4 +48,6 @@ import path from 'path';
   console.log(`ERROR          : ${errorCount}`);
   console.log(`RESULT COUNT   : ${detailedPost.length}`);
   console.log(`RESULT SAVE AT : ${fullpath}`);
-})();
+
+  return fullpath;
+}
