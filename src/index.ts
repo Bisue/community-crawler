@@ -7,10 +7,15 @@ import { crwalDetail } from './utils/detail';
   console.log('===== CRAWLING =====');
 
   // best 6000, random 30000
-  // let filepath = await dcinside.crawlRandom('baseball_new10', 1, 17500, 6000, 5);
+  // let filepath = await dcinside.crawlRandom('baseball_new10', 40990, 43500, 600, 5);
   // filepath = await crwalDetail(dcinside, filepath);
-  let filepath = await dcinside.crawlAllBest('baseball_new10', 1, 30);
+  let filepath = await dcinside.crawlAllBest('baseball_new10', 68, 70);
   filepath = await crwalDetail(dcinside, filepath);
+
+  // let filepath = await dcinside.crawlRandom('baseball_new10', 19900, 21550, 600, 5);
+  // filepath = await crwalDetail(dcinside, filepath);
+  // let filepath = await dcinside.crawlAllBest('baseball_new10', 35, 37);
+  // filepath = await crwalDetail(dcinside, filepath);
 
   console.log('crwal data saved at:', filepath);
 
