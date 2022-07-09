@@ -11,20 +11,12 @@ import { preprocessContent } from '../utils/preprocess';
 export type Post = {
   link: string | null;
   title: string;
+  content: string | null;
   author: string;
   anonymous: boolean;
-  // date: string | null;
   datetime: string | null;
-  onlyText: boolean; //
-  images: number | null;
   hasImage: boolean; //
-  videos: number | null;
   hasVideo: boolean; //
-  views: number;
-  upVotes: number;
-  downVotes: number | null;
-  comments: number;
-  content: string | null;
   isBest: boolean;
 };
 
@@ -74,12 +66,8 @@ class Dcinside {
       const title = element.find('.subjectin').first().text().trim();
       const author = element.find('.ginfo li').first().text().trim();
       const anonymous = element.find('.ginfo .sp-nick').length == 0 ? true : false;
-      const onlyText = element.find('.sp-lst-txt, .sp-lst-recotxt').length == 0 ? false : true;
       const hasImage = element.find('.sp-lst-img, .sp-lst-recoimg').length == 0 ? false : true;
       const hasVideo = element.find('.sp-lst-play, .sp-lst-recoplay').length == 0 ? false : true;
-      const views = Number.parseInt(element.find('.ginfo li').eq(2).text().trim().split(' ')[1]);
-      const upVotes = Number.parseInt(element.find('.ginfo li').eq(3).text().trim().split(' ')[1]);
-      const comments = Number.parseInt(element.find('.gall-detail-lnktb > .rt .ct').first().text().trim());
       const isBest =
         element.find('.sp-lst-recotxt, .sp-lst-recoimg, .sp-lst-recoplay, .sp-lst-best').length == 0 ? false : true;
 
@@ -91,15 +79,8 @@ class Dcinside {
         // date: null,
         datetime: null,
         content: null,
-        onlyText,
-        images: null,
         hasImage,
-        videos: null,
         hasVideo,
-        views,
-        upVotes,
-        downVotes: null,
-        comments,
         isBest,
       });
     });
@@ -130,14 +111,8 @@ class Dcinside {
     const hasImage = images > 0 ? true : false;
     const videos = $('.gall-thum-btm-inner .thum-txtin video').length;
     const hasVideo = videos > 0 ? true : false;
-    let onlyText = true;
-    if (hasImage || hasVideo) onlyText = false;
 
-    // votes
-    const upVotes = Number.parseInt($('.reco-area .reco-up .ct-box .ct').first().text().trim());
-    const downVotes = Number.parseInt($('.reco-area .reco-down .ct-box .no-ct').first().text().trim());
-
-    return { title, author, content, datetime, onlyText, images, hasImage, videos, hasVideo, upVotes, downVotes };
+    return { title, author, content, datetime, hasImage, hasVideo };
   }
 
   // 페이지 범위 내 모든 글 크롤링 (일반글)
