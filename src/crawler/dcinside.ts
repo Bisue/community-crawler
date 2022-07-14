@@ -15,6 +15,7 @@ export type Post = {
   author: string;
   anonymous: boolean;
   datetime: string | null;
+  images: string[] | null;
   hasImage: boolean; //
   hasVideo: boolean; //
   isBest: boolean;
@@ -76,9 +77,9 @@ class Dcinside {
         title,
         author,
         anonymous,
-        // date: null,
         datetime: null,
         content: null,
+        images: null,
         hasImage,
         hasVideo,
         isBest,
@@ -96,8 +97,11 @@ class Dcinside {
     const title = $('.gallview-tit-box .tit').first().text().trim();
     const author = $('.gallview-tit-box .ginfo2 li').first().text().trim();
     let content = $('.gall-thum-btm-inner .thum-txt .thum-txtin').first().html()?.trim() ?? null;
+    let contentImages: string[] = [];
     if (content != null) {
-      content = preprocessContent(content);
+      const processed = preprocessContent(content);
+      content = processed[0];
+      contentImages = processed[1];
     }
 
     // datetime
@@ -112,7 +116,7 @@ class Dcinside {
     const videos = $('.gall-thum-btm-inner .thum-txtin video').length;
     const hasVideo = videos > 0 ? true : false;
 
-    return { title, author, content, datetime, hasImage, hasVideo };
+    return { title, author, content, datetime, images: contentImages, hasImage, hasVideo };
   }
 
   // 페이지 범위 내 모든 글 크롤링 (일반글)

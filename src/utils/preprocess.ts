@@ -1,8 +1,14 @@
 import cheerio from 'cheerio';
 
-export function preprocessContent(content: string) {
+export function preprocessContent(content: string): [string, string[]] {
   const $ = cheerio.load(content);
-  $('script, img, iframe, video').each((idx, e) => {
+  const imageUrls: string[] = [];
+  $('img').each((idx, e) => {
+    const url = $(e).attr('data-original');
+    if (url) imageUrls.push(url);
+  });
+
+  $('script, iframe, video').each((idx, e) => {
     $(e).remove();
   });
   const contentText = $.root()
@@ -18,8 +24,8 @@ export function preprocessContent(content: string) {
     .trim();
   if (contentText == undefined) {
     console.log('ERROR!');
-    return null;
+    throw Error('Content not found');
   }
 
-  return contentText;
+  return [contentText, imageUrls];
 }
